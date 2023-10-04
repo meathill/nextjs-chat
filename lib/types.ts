@@ -16,3 +16,11 @@ export type ServerActionResult<Result> = Promise<
       error: string
     }
 >
+
+export type Subtitle = {
+  Text: string,
+  BeginTime: number,
+  EndTime: number,
+  BeginIndex: number,
+  EndIndex: number,
+}
