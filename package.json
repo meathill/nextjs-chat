@@ -24,6 +24,7 @@
     "@radix-ui/react-switch": "^1.0.3",
     "@radix-ui/react-tooltip": "^1.0.6",
     "@vercel/analytics": "^1.0.0",
+    "@vercel/blob": "^0.13.0",
     "@vercel/kv": "^0.2.1",
     "@vercel/og": "^0.5.7",
     "ai": "^2.1.6",
@@ -43,7 +44,9 @@
     "react-syntax-highlighter": "^15.5.0",
     "react-textarea-autosize": "^8.4.1",
     "remark-gfm": "^3.0.1",
-    "remark-math": "^5.1.1"
+    "remark-math": "^5.1.1",
+    "tencentcloud-sdk-nodejs-asr": "^4.0.699",
+    "tencentcloud-sdk-nodejs-tts": "^4.0.699"
   },
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.9",

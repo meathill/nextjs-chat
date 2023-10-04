@@ -8,8 +8,6 @@ export type TtsOptions = {
   emotionCategory: string;
   emotionIntensity: number;
   speed: number;
-  tencentSecretId: string;
-  tencentSecretKey: string;
 };
 
 type EmotionOptions = {
@@ -30,19 +28,16 @@ export default function useTextToSpeech() {
     emotionCategory,
     emotionIntensity,
     speed,
-    tencentSecretId,
-    tencentSecretKey,
   }: TtsOptions): Promise<void> {
     setError('');
     if (isSending) return;
 
     setIsSending(true);
     try {
-      const emotion: EmotionOptions = {};
-      if (emotionCategory) {
-        emotion.emotionCategory = emotionCategory;
-        emotion.emotionIntensity = emotionIntensity;
-      }
+      const emotion: EmotionOptions = {
+        emotionCategory: emotionCategory ?? '',
+        emotionIntensity: emotionIntensity ?? 0,
+      };
       const response = await fetch((process.env.NEXT_PUBLIC_STT_HOST || '') + '/api/tts', {
         method: 'POST',
         headers: {
@@ -55,8 +50,6 @@ export default function useTextToSpeech() {
           speed,
           volume: 5,
           ...emotion,
-          tencentSecretId,
-          tencentSecretKey,
         }),
       });
       if (!response.ok) {
@@ -67,7 +60,7 @@ export default function useTextToSpeech() {
 
       const result = (await response.json()) as { data: { Audio: string; Subtitles: Subtitle[] } };
       const audio = result.data.Audio;
-      const raw = atob(audio);
+      const raw = window.atob(audio);
       const rawLength = raw.length;
       const array = new Uint8Array(new ArrayBuffer(rawLength));
       for (let i = 0; i < rawLength; i++) {
