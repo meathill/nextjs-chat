@@ -39,3 +39,11 @@ export interface User extends Record<string, any> {
   password: string
   salt: string
 }
+
+export type Subtitle = {
+  Text: string,
+  BeginTime: number,
+  EndTime: number,
+  BeginIndex: number,
+  EndIndex: number,
+}

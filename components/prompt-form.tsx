@@ -77,7 +77,7 @@ export function PromptForm({
                 router.push('/new')
               }}
             >
-              <IconPlus />
+              <i className='bi bi-plus-lg' />
               <span className="sr-only">New Chat</span>
             </Button>
           </TooltipTrigger>
