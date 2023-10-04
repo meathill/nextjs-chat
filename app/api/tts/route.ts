@@ -14,7 +14,7 @@ const clientConfig = {
   },
 };
 
-export async function defineEventHandler(req: Request) {
+export async function POST(req: Request) {
   const userId = (await auth())?.user.id;
 
   if (!userId) {
