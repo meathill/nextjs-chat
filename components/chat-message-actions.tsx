@@ -58,7 +58,7 @@ export function ChatMessageActions({
       </Button>
       <Button variant="ghost" size="icon" onClick={doPlay}>
         {isPlaying ? (
-          <IconSpinner className="mr-2 animate-spin" />
+          <IconSpinner className="animate-spin" />
         ) : (
           <i className='bi bi-play-circle-fill' />
         )}

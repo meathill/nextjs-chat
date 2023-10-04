@@ -1,17 +1,17 @@
 import { UseChatHelpers } from 'ai/react'
-import * as React from 'react'
+import { useRef, useEffect } from 'react'
 import Textarea from 'react-textarea-autosize'
 
 import { Button, buttonVariants } from '@/components/ui/button'
-import { IconArrowElbow, IconPlus } from '@/components/ui/icons'
+import { IconArrowElbow, IconPlus, IconSpinner } from '@/components/ui/icons'
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger
 } from '@/components/ui/tooltip'
 import { useEnterSubmit } from '@/lib/hooks/use-enter-submit'
+import { useSpeechToText } from '@/lib/hooks/use-speech-to-text';
 import { cn } from '@/lib/utils'
-import { useRouter } from 'next/navigation'
 
 export interface PromptProps
   extends Pick<UseChatHelpers, 'input' | 'setInput'> {
@@ -26,14 +26,35 @@ export function PromptForm({
   isLoading
 }: PromptProps) {
   const { formRef, onKeyDown } = useEnterSubmit()
-  const inputRef = React.useRef<HTMLTextAreaElement>(null)
-  const router = useRouter()
+  const {
+    isRecording,
+    isConverting,
+    isSending,
+    error,
+    promptText,
+    doSpeechToText,
+    doStopRecording,
+    clearError,
+  } = useSpeechToText();
+  const inputRef = useRef<HTMLTextAreaElement>(null)
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (inputRef.current) {
       inputRef.current.focus()
     }
   }, [])
+  useEffect(() => {
+    setInput(input + promptText);
+  }, [promptText])
+
+  const onSttClick = async () => {
+    if (isRecording) {
+      doStopRecording();
+    } else {
+      clearError();
+      await doSpeechToText();
+    }
+  }
 
   return (
     <form
@@ -51,21 +72,22 @@ export function PromptForm({
         <Tooltip>
           <TooltipTrigger asChild>
             <button
-              onClick={e => {
-                e.preventDefault()
-                router.refresh()
-                router.push('/')
-              }}
+              onClick={onSttClick}
               className={cn(
                 buttonVariants({ size: 'sm', variant: 'outline' }),
                 'absolute left-0 top-4 h-8 w-8 rounded-full bg-background p-0 sm:left-4'
               )}
             >
-              <i className='bi bi-mic-fill' />
-              <span className="sr-only">New Chat</span>
+              {isSending || isConverting
+                ? <IconSpinner className="animate-spin" />
+                : (isRecording
+                  ? <i className='bi bi-stop-fill' />
+                  : <i className='bi bi-mic-fill' />
+                )}
+              <span className="sr-only">Voice input</span>
             </button>
           </TooltipTrigger>
-          <TooltipContent>New Chat</TooltipContent>
+          <TooltipContent>Voice input</TooltipContent>
         </Tooltip>
         <Textarea
           ref={inputRef}
