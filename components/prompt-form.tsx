@@ -44,8 +44,10 @@ export function PromptForm({
     }
   }, [])
   useEffect(() => {
-    setInput(input + promptText);
-  }, [promptText])
+    if (promptText) {
+      setInput(input + promptText);
+    }
+  }, [promptText]);
 
   const onSttClick = async () => {
     if (isRecording) {

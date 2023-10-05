@@ -11,10 +11,11 @@ export function NewChatButton({
   className,
   ...props
 }: ButtonProps) {
+  const router = useRouter();
+
   return (
     <Button
       onClick={(event) => {
-        const router = useRouter()
         event.preventDefault()
         router.refresh()
         router.push('/');

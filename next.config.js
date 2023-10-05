@@ -1,3 +1,5 @@
+const pkg = require('./package.json');
+
 /** @type {import('next').NextConfig} */
 module.exports = {
   reactStrictMode: true,
@@ -13,5 +15,8 @@ module.exports = {
         pathname: '**',
       },
     ],
+  },
+  env: {
+    version: pkg.version,
   },
 };
