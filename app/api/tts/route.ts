@@ -60,13 +60,13 @@ export async function POST(req: Request) {
     array[ i ] = raw.charCodeAt(i);
   }
   const blob = new Blob([array], { type: 'audio/mp3' });
-  const fileName = await put(body.uuid + '.mp3', blob, { access: 'public' });
+  const uploaded = await put(body.uuid + '.mp3', blob, { access: 'public' });
 
   return Response.json({
     code: 0,
     data: {
       Subtitles: voice.Subtitles,
-      fileName,
+      url: uploaded.url,
     },
   });
 }

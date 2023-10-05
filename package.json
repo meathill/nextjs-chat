@@ -35,7 +35,7 @@
     "next": "13.4.7",
     "next-auth": "0.0.0-manual.83c4ebd1",
     "next-themes": "^0.2.1",
-    "openai-edge": "^1.2.2",
+    "openai": "^4.11.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-hot-toast": "^2.4.1",
@@ -45,7 +45,6 @@
     "react-textarea-autosize": "^8.5.3",
     "remark-gfm": "^3.0.1",
     "remark-math": "^5.1.1",
-    "tencentcloud-sdk-nodejs-asr": "^4.0.699",
     "tencentcloud-sdk-nodejs-tts": "^4.0.699"
   },
   "devDependencies": {
