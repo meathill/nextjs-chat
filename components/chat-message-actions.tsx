@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button'
 import { IconSpinner } from '@/components/ui/icons'
 import { useCopyToClipboard } from '@/lib/hooks/use-copy-to-clipboard'
 import { cn } from '@/lib/utils'
+import { useAudio } from '@/lib/hooks/use-audio'
+import { ResponseBody } from '@/lib/types'
 
 interface ChatMessageActionsProps extends React.ComponentProps<'div'> {
   message: Message
@@ -18,19 +20,24 @@ export function ChatMessageActions({
   ...props
 }: ChatMessageActionsProps) {
   const { isCopied, copyToClipboard } = useCopyToClipboard({ timeout: 2000 })
-  const [isPlaying, setIsPlaying] = React.useState(false)
+  const { play, isPlaying } = useAudio()
+  const [isPlayingMyVoice, setIsPlayingMyVoice] = React.useState(false)
+  const [originalMessage, audio, myVoice] = message.content.split('//')
 
   const onCopy = () => {
     if (isCopied) return
-    copyToClipboard(message.content)
+    copyToClipboard(originalMessage)
   }
 
   const doPlay = async () => {
-    setIsPlaying(true)
+    if (audio) {
+      return play(audio)
+    }
+
     const response = await fetch('/api/tts', {
       method: 'POST',
       body: JSON.stringify({
-        text: message.content,
+        text: originalMessage,
         uuid: crypto.randomUUID(),
         voiceType: 301027,
         speed: 0,
@@ -39,20 +46,25 @@ export function ChatMessageActions({
         EnableSubtitle: false
       })
     })
-    const json = await response.json()
-    console.log('xxx', json)
-    setIsPlaying(false)
+    const json = (await response.json()) as ResponseBody<{ url: string }>
+    if (!json.data) return
+    const url = json.data.url
+    return play(url)
+  }
+
+  const doPlayMyVoice = () => {
+    return play(myVoice)
   }
 
   return (
     <div
       className={cn(
-        'flex flex-col items-center justify-end transition-opacity group-hover:opacity-100 md:absolute md:-right-10 md:-top-2 md:opacity-0',
+        'flex items-center justify-end md:absolute md:-right-10 md:bottom-0',
         className
       )}
       {...props}
     >
-      <Button variant="ghost" size="icon" onClick={onCopy}>
+      <Button type="button" variant="ghost" size="icon" onClick={onCopy}>
         {isCopied ? (
           <i className="bi bi-check" />
         ) : (
@@ -60,11 +72,25 @@ export function ChatMessageActions({
         )}
         <span className="sr-only">Copy message</span>
       </Button>
-      <Button variant="ghost" size="icon" onClick={doPlay}>
+      {myVoice && (
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          onClick={doPlayMyVoice}
+        >
+          {isPlayingMyVoice ? (
+            <IconSpinner className="animate-spin" />
+          ) : (
+            <i className="bi bi-headset" />
+          )}
+        </Button>
+      )}
+      <Button type="button" variant="ghost" size="icon" onClick={doPlay}>
         {isPlaying ? (
           <IconSpinner className="animate-spin" />
         ) : (
-          <i className="bi bi-play-circle-fill" />
+          <i className="bi bi-headset" />
         )}
         <span className="sr-only">Read message</span>
       </Button>

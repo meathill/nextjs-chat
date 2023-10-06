@@ -1,9 +1,9 @@
 import { UseChatHelpers } from 'ai/react'
-import { useRef, useEffect, useState } from 'react'
+import { useRef, useEffect } from 'react'
 import Textarea from 'react-textarea-autosize'
 
 import { Button, buttonVariants } from '@/components/ui/button'
-import { IconArrowElbow, IconPlus, IconSpinner } from '@/components/ui/icons'
+import { IconArrowElbow, IconSpinner } from '@/components/ui/icons'
 import {
   Tooltip,
   TooltipContent,
@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/tooltip'
 import { useEnterSubmit } from '@/lib/hooks/use-enter-submit'
 import { useSpeechToText } from '@/lib/hooks/use-speech-to-text'
+import { useAudio } from '@/lib/hooks/use-audio'
 import { cn } from '@/lib/utils'
 
 export interface PromptProps
@@ -26,8 +27,7 @@ export function PromptForm({
   isLoading
 }: PromptProps) {
   const { formRef, onKeyDown } = useEnterSubmit()
-  const audio = useRef<HTMLAudioElement>()
-  const [isPlaying, setIsPlaying] = useState(false)
+  const { play, isPlaying } = useAudio()
 
   const {
     isRecording,
@@ -58,22 +58,6 @@ export function PromptForm({
     } else {
       clearError()
       await doSpeechToText()
-    }
-  }
-  const doPlayVoice = async () => {
-    if (!audio.current) {
-      audio.current = new Audio()
-      audio.current?.addEventListener('ended', () => {
-        setIsPlaying(false)
-      })
-    }
-    audio.current.src = audioUrl
-    if (isPlaying) {
-      audio.current.pause()
-      setIsPlaying(false)
-    } else {
-      await audio.current.play()
-      setIsPlaying(true)
     }
   }
 
@@ -117,7 +101,7 @@ export function PromptForm({
             <TooltipTrigger asChild>
               <button
                 type="button"
-                onClick={doPlayVoice}
+                onClick={() => play(audioUrl)}
                 className={cn(
                   buttonVariants({ size: 'sm', variant: 'outline' }),
                   'absolute left-0 top-14 h-8 w-8 rounded-full bg-background p-0 sm:left-4'

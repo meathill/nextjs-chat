@@ -7,6 +7,14 @@ import { kv } from '@vercel/kv'
 import { auth } from '@/auth'
 import { type Chat } from '@/lib/types'
 
+async function digestMessage(message: string): Promise<string> {
+  const msgUint8 = new TextEncoder().encode(message) // encode as (utf-8) Uint8Array
+  const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8) // hash the message
+  const hashArray = Array.from(new Uint8Array(hashBuffer)) // convert buffer to byte array
+  // convert bytes to hex string
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+}
+
 export async function getChats(userId?: string | null) {
   if (!userId) {
     return []
@@ -117,4 +125,44 @@ export async function shareChat(chat: Chat) {
   await kv.hmset(`chat:${chat.id}`, payload)
 
   return payload
+}
+
+export async function setAudio(id: string, audio: string, content: string) {
+  const session = await auth()
+  if (!session) {
+    return {
+      error: 'Unauthorized'
+    }
+  }
+
+  const chat = await getChat(id, session.user.id)
+  if (!chat) {
+    return {
+      error: 'Unauthorized'
+    }
+  }
+
+  const key = await digestMessage(content)
+
+  await kv.hset(`chat:${id}:audio`, {
+    [key]: audio
+  })
+}
+
+export async function getAudios(id: string) {
+  const session = await auth()
+  if (!session) {
+    return {
+      error: 'Unauthorized'
+    }
+  }
+
+  const chat = await getChat(id, session.user.id)
+  if (!chat) {
+    return {
+      error: 'Unauthorized'
+    }
+  }
+
+  return kv.hgetall(`chat:${id}:audio`)
 }

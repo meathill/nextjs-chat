@@ -30,6 +30,15 @@ export function ChatPanel({
   setInput,
   messages
 }: ChatPanelProps) {
+  const onSubmit = async (value: string, audio?: string) => {
+    await append({
+      id,
+      content: value,
+      role: 'user'
+    })
+    // save audio to db
+  }
+
   return (
     <div className="fixed inset-x-0 bottom-0 bg-gradient-to-b from-muted/10 from-10% to-muted/30 to-50%">
       <ButtonScrollToBottom />
@@ -59,13 +68,7 @@ export function ChatPanel({
         </div>
         <div className="space-y-4 border-t bg-background px-4 py-2 shadow-lg sm:rounded-t-xl sm:border md:py-4">
           <PromptForm
-            onSubmit={async (value, audio) => {
-              await append({
-                id,
-                content: value + (audio ? ` [audio](${audio})` : ''),
-                role: 'user'
-              })
-            }}
+            onSubmit={onSubmit}
             input={input}
             setInput={setInput}
             isLoading={isLoading}
