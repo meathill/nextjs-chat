@@ -5,15 +5,8 @@ import { redirect } from 'next/navigation'
 import { kv } from '@vercel/kv'
 
 import { auth } from '@/auth'
-import { type Chat } from '@/lib/types'
-
-async function digestMessage(message: string): Promise<string> {
-  const msgUint8 = new TextEncoder().encode(message) // encode as (utf-8) Uint8Array
-  const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8) // hash the message
-  const hashArray = Array.from(new Uint8Array(hashBuffer)) // convert buffer to byte array
-  // convert bytes to hex string
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
-}
+import { type Chat, ChatAudios } from '@/lib/types'
+import { digestMessage } from '@/lib/utils'
 
 export async function getChats(userId?: string | null) {
   if (!userId) {
@@ -38,7 +31,7 @@ export async function getChats(userId?: string | null) {
   }
 }
 
-export async function getChat(id: string, userId: string) {
+export async function getChat(id: string, userId: string, hasAudio = false) {
   const chat = await kv.hgetall<Chat>(`chat:${id}`)
 
   if (!chat || (userId && chat.userId !== userId)) {
@@ -127,7 +120,7 @@ export async function shareChat(chat: Chat) {
   return payload
 }
 
-export async function setAudio(id: string, audio: string, content: string) {
+export async function setAudio(id: string, audioUrl: string, content: string) {
   const session = await auth()
   if (!session) {
     return {
@@ -135,34 +128,26 @@ export async function setAudio(id: string, audio: string, content: string) {
     }
   }
 
-  const chat = await getChat(id, session.user.id)
-  if (!chat) {
+  const audio = await kv.hgetall<ChatAudios>(`chat:${id}:audio`)
+  if (audio && audio.userId !== session.user.id) {
     return {
-      error: 'Unauthorized'
+      error: 'Permission denied'
     }
   }
 
   const key = await digestMessage(content)
 
   await kv.hset(`chat:${id}:audio`, {
-    [key]: audio
+    ...(audio ? {} : { userId: session.user.id }),
+    [key]: audioUrl
   })
 }
 
-export async function getAudios(id: string) {
-  const session = await auth()
-  if (!session) {
-    return {
-      error: 'Unauthorized'
-    }
+export async function getAudios(id: string, userId: string) {
+  const audio = await kv.hgetall<ChatAudios>(`chat:${id}:audio`)
+  if (audio && audio.userId !== userId) {
+    return null
   }
 
-  const chat = await getChat(id, session.user.id)
-  if (!chat) {
-    return {
-      error: 'Unauthorized'
-    }
-  }
-
-  return kv.hgetall(`chat:${id}:audio`)
+  return audio
 }

@@ -10,6 +10,10 @@ export interface Chat extends Record<string, any> {
   sharePath?: string
 }
 
+export interface ChatAudios extends Record<string, any> {
+  userId: string
+}
+
 export type ServerActionResult<Result> = Promise<
   | Result
   | {

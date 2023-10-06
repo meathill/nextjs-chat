@@ -2,7 +2,7 @@ import { type Metadata } from 'next'
 import { notFound, redirect } from 'next/navigation'
 
 import { auth } from '@/auth'
-import { getChat } from '@/app/actions'
+import { getAudios, getChat } from '@/app/actions'
 import { Chat } from '@/components/chat'
 
 export const runtime = 'edge'
@@ -46,5 +46,9 @@ export default async function ChatPage({ params }: ChatPageProps) {
     notFound()
   }
 
-  return <Chat id={chat.id} initialMessages={chat.messages} />
+  const audios = await getAudios(params.id, session.user.id)
+
+  return (
+    <Chat id={chat.id} initialMessages={chat.messages} audios={audios || {}} />
+  )
 }

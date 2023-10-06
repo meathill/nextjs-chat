@@ -1,43 +1,62 @@
 'use client'
 
-import React from 'react'
+import { useState, ComponentProps, useEffect } from 'react'
 import { type Message } from 'ai'
 
 import { Button } from '@/components/ui/button'
 import { IconSpinner } from '@/components/ui/icons'
 import { useCopyToClipboard } from '@/lib/hooks/use-copy-to-clipboard'
-import { cn } from '@/lib/utils'
+import { cn, digestMessage } from '@/lib/utils'
 import { useAudio } from '@/lib/hooks/use-audio'
 import { ResponseBody } from '@/lib/types'
+import { setAudio } from '@/app/actions'
 
-interface ChatMessageActionsProps extends React.ComponentProps<'div'> {
+interface ChatMessageActionsProps extends ComponentProps<'div'> {
+  id: string
   message: Message
+  audios: Record<string, string>
 }
 
 export function ChatMessageActions({
+  id,
   message,
+  audios,
   className,
   ...props
 }: ChatMessageActionsProps) {
   const { isCopied, copyToClipboard } = useCopyToClipboard({ timeout: 2000 })
   const { play, isPlaying } = useAudio()
-  const [isPlayingMyVoice, setIsPlayingMyVoice] = React.useState(false)
-  const [originalMessage, audio, myVoice] = message.content.split('//')
+  const [isPlayingMyVoice, setIsPlayingMyVoice] = useState(false)
+  const [audioUrl, setAudioUrl] = useState<string>('')
+  const [voiceUrl, setVoiceUrl] = useState<string>('')
+
+  useEffect(() => {
+    digestMessage(message.content).then(hash => {
+      if (audios[hash]) {
+        setAudioUrl(audios[hash])
+      }
+    })
+    digestMessage(message.content + ' // my voice').then(hash => {
+      if (audios[hash]) {
+        setVoiceUrl(audios[hash])
+      }
+    })
+  }, [audios, message.content])
 
   const onCopy = () => {
     if (isCopied) return
-    copyToClipboard(originalMessage)
+    copyToClipboard(message.content)
   }
 
   const doPlay = async () => {
-    if (audio) {
-      return play(audio)
+    if (audioUrl) {
+      return play(audioUrl)
     }
 
     const response = await fetch('/api/tts', {
       method: 'POST',
       body: JSON.stringify({
-        text: originalMessage,
+        text: message.content,
         uuid: crypto.randomUUID(),
         voiceType: 301027,
         speed: 0,
@@ -49,11 +68,13 @@ export function ChatMessageActions({
     const json = (await response.json()) as ResponseBody<{ url: string }>
     if (!json.data) return
     const url = json.data.url
+    setAudio(id, url, message.content)
+    setAudioUrl(url)
     return play(url)
   }
 
   const doPlayMyVoice = () => {
-    return play(myVoice)
+    return play(voiceUrl)
   }
 
   return (
@@ -72,7 +93,7 @@ export function ChatMessageActions({
         )}
         <span className="sr-only">Copy message</span>
       </Button>
-      {myVoice && (
+      {voiceUrl && (
         <Button
           type="button"
           variant="ghost"

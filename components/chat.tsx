@@ -25,9 +25,10 @@ const IS_PREVIEW = process.env.VERCEL_ENV === 'preview'
 export interface ChatProps extends React.ComponentProps<'div'> {
   initialMessages?: Message[]
   id?: string
+  audios?: Record<string, string>
 }
 
-export function Chat({ id, initialMessages, className }: ChatProps) {
+export function Chat({ id, initialMessages, audios, className }: ChatProps) {
   const [previewToken, setPreviewToken] = useLocalStorage<string | null>(
     'ai-token',
     null
@@ -53,7 +54,7 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
       <div className={cn('pb-[200px] pt-4 md:pt-10', className)}>
         {messages.length ? (
           <>
-            <ChatList messages={messages} />
+            <ChatList id={id} messages={messages} audios={audios} />
             <ChatScrollAnchor trackVisibility={isLoading} />
           </>
         ) : (
