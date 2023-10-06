@@ -1,5 +1,5 @@
 import { UseChatHelpers } from 'ai/react'
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useState } from 'react'
 import Textarea from 'react-textarea-autosize'
 
 import { Button, buttonVariants } from '@/components/ui/button'
@@ -10,12 +10,12 @@ import {
   TooltipTrigger
 } from '@/components/ui/tooltip'
 import { useEnterSubmit } from '@/lib/hooks/use-enter-submit'
-import { useSpeechToText } from '@/lib/hooks/use-speech-to-text';
+import { useSpeechToText } from '@/lib/hooks/use-speech-to-text'
 import { cn } from '@/lib/utils'
 
 export interface PromptProps
   extends Pick<UseChatHelpers, 'input' | 'setInput'> {
-  onSubmit: (value: string) => Promise<void>
+  onSubmit: (value: string, audioUrl?: string) => Promise<void>
   isLoading: boolean
 }
 
@@ -26,16 +26,19 @@ export function PromptForm({
   isLoading
 }: PromptProps) {
   const { formRef, onKeyDown } = useEnterSubmit()
+  const audio = useRef<HTMLAudioElement>()
+  const [isPlaying, setIsPlaying] = useState(false)
+
   const {
     isRecording,
     isConverting,
     isSending,
-    error,
     promptText,
+    audioUrl,
     doSpeechToText,
     doStopRecording,
-    clearError,
-  } = useSpeechToText();
+    clearError
+  } = useSpeechToText()
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => {
@@ -45,16 +48,32 @@ export function PromptForm({
   }, [])
   useEffect(() => {
     if (promptText) {
-      setInput(input + promptText);
+      setInput(input + promptText)
     }
-  }, [promptText]);
+  }, [promptText])
 
   const onSttClick = async () => {
     if (isRecording) {
-      doStopRecording();
+      doStopRecording()
     } else {
-      clearError();
-      await doSpeechToText();
+      clearError()
+      await doSpeechToText()
+    }
+  }
+  const doPlayVoice = async () => {
+    if (!audio.current) {
+      audio.current = new Audio()
+      audio.current?.addEventListener('ended', () => {
+        setIsPlaying(false)
+      })
+    }
+    audio.current.src = audioUrl
+    if (isPlaying) {
+      audio.current.pause()
+      setIsPlaying(false)
+    } else {
+      await audio.current.play()
+      setIsPlaying(true)
     }
   }
 
@@ -66,31 +85,55 @@ export function PromptForm({
           return
         }
         setInput('')
-        await onSubmit(input)
+        await onSubmit(input, audioUrl)
       }}
       ref={formRef}
     >
-      <div className="relative flex max-h-60 w-full grow flex-col overflow-hidden bg-background px-8 sm:rounded-md sm:border sm:px-12">
+      <div className="relative flex max-h-60 w-full grow flex-col bg-background px-8 sm:rounded-md sm:border sm:px-12">
         <Tooltip>
           <TooltipTrigger asChild>
             <button
+              type="button"
               onClick={onSttClick}
               className={cn(
                 buttonVariants({ size: 'sm', variant: 'outline' }),
                 'absolute left-0 top-4 h-8 w-8 rounded-full bg-background p-0 sm:left-4'
               )}
             >
-              {isSending || isConverting
-                ? <IconSpinner className="animate-spin" />
-                : (isRecording
-                  ? <i className='bi bi-stop-fill' />
-                  : <i className='bi bi-mic-fill' />
-                )}
+              {isSending || isConverting ? (
+                <IconSpinner className="animate-spin" />
+              ) : isRecording ? (
+                <i className="bi bi-stop-fill" />
+              ) : (
+                <i className="bi bi-mic-fill" />
+              )}
               <span className="sr-only">Voice input</span>
             </button>
           </TooltipTrigger>
           <TooltipContent>Voice input</TooltipContent>
         </Tooltip>
+        {audioUrl && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                onClick={doPlayVoice}
+                className={cn(
+                  buttonVariants({ size: 'sm', variant: 'outline' }),
+                  'absolute left-0 top-14 h-8 w-8 rounded-full bg-background p-0 sm:left-4'
+                )}
+              >
+                {isPlaying ? (
+                  <i className="bi bi-stop-fill" />
+                ) : (
+                  <i className="bi bi-play-fill" />
+                )}
+                <span className="sr-only">Play voice</span>
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>Play voice</TooltipContent>
+          </Tooltip>
+        )}
         <Textarea
           ref={inputRef}
           tabIndex={0}

@@ -18,9 +18,18 @@ export type ServerActionResult<Result> = Promise<
 >
 
 export type Subtitle = {
-  Text: string,
-  BeginTime: number,
-  EndTime: number,
-  BeginIndex: number,
-  EndIndex: number,
+  Text: string
+  BeginTime: number
+  EndTime: number
+  BeginIndex: number
+  EndIndex: number
+}
+
+export type ResponseBody<T> = {
+  code: number
+  data?: T
+  message?: string
+  meta?: {
+    total?: number
+  }
 }

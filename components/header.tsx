@@ -7,16 +7,12 @@ import { clearChats } from '@/app/actions'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Sidebar } from '@/components/sidebar'
 import { SidebarList } from '@/components/sidebar-list'
-import {
-  IconGitHub,
-  IconNextChat,
-  IconSeparator,
-} from '@/components/ui/icons'
+import { IconGitHub, IconNextChat, IconSeparator } from '@/components/ui/icons'
 import { SidebarFooter } from '@/components/sidebar-footer'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { ClearHistory } from '@/components/clear-history'
 import { UserMenu } from '@/components/user-menu'
-import { NewChatButton } from '@/components/new-chat-button';
+import { NewChatButton } from '@/components/new-chat-button'
 
 export async function Header() {
   const session = await auth()
@@ -27,7 +23,9 @@ export async function Header() {
         {session?.user ? (
           <>
             <Sidebar>
-              <React.Suspense fallback={<div className="flex-1 overflow-auto" />}>
+              <React.Suspense
+                fallback={<div className="flex-1 overflow-auto" />}
+              >
                 {/* @ts-ignore */}
                 <SidebarList userId={session?.user?.id} />
               </React.Suspense>

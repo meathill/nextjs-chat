@@ -4,21 +4,22 @@ import * as React from 'react'
 import { useRouter } from 'next/navigation'
 
 import { cn } from '@/lib/utils'
-import { Button, type ButtonProps, buttonVariants } from '@/components/ui/button'
+import {
+  Button,
+  type ButtonProps,
+  buttonVariants
+} from '@/components/ui/button'
 import { IconPlus } from '@/components/ui/icons'
 
-export function NewChatButton({
-  className,
-  ...props
-}: ButtonProps) {
-  const router = useRouter();
+export function NewChatButton({ className, ...props }: ButtonProps) {
+  const router = useRouter()
 
   return (
     <Button
-      onClick={(event) => {
+      onClick={event => {
         event.preventDefault()
         router.refresh()
-        router.push('/');
+        router.push('/')
       }}
       className={cn(
         buttonVariants({ size: 'sm', variant: 'secondary' }),
