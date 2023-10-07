@@ -6,7 +6,7 @@ import { ChatMessage } from '@/components/chat-message'
 export interface ChatList {
   id?: string
   messages: Message[]
-  audios: Record<string, string>
+  audios?: Record<string, string>
 }
 
 export function ChatList({ id, messages, audios }: ChatList) {
@@ -18,7 +18,7 @@ export function ChatList({ id, messages, audios }: ChatList) {
     <div className="relative mx-auto max-w-2xl px-4">
       {messages.map((message, index) => (
         <div key={index}>
-          <ChatMessage id={id as string} message={message} audios={audios} />
+          <ChatMessage id={id as string} message={message} audios={audios || {}} />
           {index < messages.length - 1 && (
             <Separator className="my-4 md:my-8" />
           )}
