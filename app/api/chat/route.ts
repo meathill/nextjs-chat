@@ -9,7 +9,7 @@ import { nanoid } from '@/lib/utils'
 export const runtime = 'edge'
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: '',
   baseURL: process.env.CF_AI_GATEWAY || 'https://api.openai.com/v1',
 })
 
@@ -25,14 +25,27 @@ export async function POST(req: Request) {
     })
   }
 
-  const aw = (await get('aw')) as string[]
   let model = 'gpt-3.5-turbo-1106';
-  console.log('xxx', user.email, userId)
-  if (user.email && aw?.includes(user.email)) {
-    openai.apiKey = process.env.AW_OPENAI_API_KEY || '';
-    model = 'gpt-4-1106-preview'
-  } else if (previewToken) {
+  if (previewToken) {
     openai.apiKey = previewToken
+  } else if (user.email) {
+    const aw = (await get('aw')) as string[]
+    if (aw?.includes(user.email)) {
+      openai.apiKey = process.env.AW_OPENAI_API_KEY || '';
+      model = 'gpt-4-1106-preview'
+    } else {
+      const meathill = (await get('meathill')) as string[]
+      if (meathill?.includes(user.email)) {
+        openai.apiKey = process.env.OPENAI_API_KEY || '';
+        model = 'gpt-4-1106-preview'
+      }
+    }
+  }
+
+  if (!openai.apiKey) {
+    return new Response('Unauthorized', {
+      status: 401
+    })
   }
 
   const res = await openai.chat.completions.create({
